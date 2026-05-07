@@ -10,7 +10,7 @@ from kalman import Kalman
 
 
 WORLD_SIZE = 100
-NUM_OBSTACLES = 25
+NUM_OBSTACLES = 55
 MAX_RENDER_BLOCKS = 8000
 
 DT = 0.03
@@ -532,7 +532,7 @@ def create_cube_mesh(block_positions):
         [0, 3, 7], [0, 7, 4],
     ])
 
-    base_color = np.array([0.35, 0.40, 0.55, 0.4])
+    base_color = np.array([0.35, 0.40, 0.55, 1.0])
 
     for block in block_positions:
         start_index = len(vertices)
