@@ -1,6 +1,7 @@
 import heapq
 import random
 from enum import Enum
+from scipy.interpolate import CubicSpline
 
 import numpy as np
 from vispy import app, scene
@@ -14,7 +15,7 @@ NUM_OBSTACLES = 75
 MAX_RENDER_BLOCKS = 8000
 
 DT = 0.03
-MAX_SPEED = 3.0
+MAX_SPEED = 6.0
 
 SENSOR_SIGMA_POS = 0.8
 SENSOR_SIGMA_VEL = 0.3
@@ -207,6 +208,27 @@ def astar(world, start, goal):
     return None, explored_order
 
 
+def smooth_path(path, smoothing_factor=10):
+        if len(path) < 4:
+            return path
+
+        points = np.array([p for p in path], dtype=float)
+        t = np.arange(len(points))
+    
+        cs_x = CubicSpline(t, points[:, 0])
+        cs_y = CubicSpline(t, points[:, 1])
+        cs_z = CubicSpline(t, points[:, 2])
+    
+        t_fine = np.linspace(0, len(points) - 1, len(points) * smoothing_factor)
+    
+        smooth = np.column_stack([
+            cs_x(t_fine),
+            cs_y(t_fine),
+            cs_z(t_fine),
+        ])
+    
+        return [smooth[i] for i in range(len(smooth))]
+
 def reconstruct_path(came_from, current):
     path = [current]
 
@@ -295,6 +317,28 @@ class DroneAgent:
     def has_path(self):
         return self.path is not None and len(self.path) > 0
 
+
+    def smooth_path(path, smoothing_factor=3):
+        if len(path) < 4:
+            return path
+
+        points = np.array([p for p in path], dtype=float)
+        t = np.arange(len(points))
+    
+        cs_x = CubicSpline(t, points[:, 0])
+        cs_y = CubicSpline(t, points[:, 1])
+        cs_z = CubicSpline(t, points[:, 2])
+    
+        t_fine = np.linspace(0, len(points) - 1, len(points) * smoothing_factor)
+    
+        smooth = np.column_stack([
+            cs_x(t_fine),
+            cs_y(t_fine),
+            cs_z(t_fine),
+        ])
+    
+        return [smooth[i] for i in range(len(smooth))]
+
     def plan_path(self):
         print("Planning path with A*...")
 
@@ -305,7 +349,8 @@ class DroneAgent:
             print("A* failed: no path found.")
             return False
 
-        self.path = [np.array(p, dtype=float) for p in path]
+        raw_path = [np.array(p, dtype=float) for p in path]
+        self.path = smooth_path(raw_path, smoothing_factor=10)        
         self.current_path_index = 0
         self.path_length_blocks = len(self.path)
 
@@ -345,7 +390,8 @@ class DroneAgent:
         direction = target - self.estimated_position
         distance = np.linalg.norm(direction)
 
-        if distance < 0.2:
+        real_dist = np.linalg.norm(target - self.real_position)
+        if real_dist < 1.5:
             self.current_path_index += 1
             return
 
