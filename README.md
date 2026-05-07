@@ -48,11 +48,11 @@ source .venv/bin/activate       # For Bash/Zsh
 ```
 
 ### 2. Installing Dependencies
-If dependencies are not installed, you can install them using the following command:
+If dependencies are not installed, you can easily install them using the `requirements.txt` file:
 ```bash
-pip install numpy vispy matplotlib PyQt6
+pip install -r requirements.txt
 ```
-*(Note: VisPy may require PyQt6, PyQt5, or a similar Qt backend to be installed on your system).*
+*(Note: VisPy may require PyQt6, PyQt5, or a similar Qt backend to be installed on your system. PyQt6 is included in the requirements).*
 
 ### 3. Starting the Simulation
 To run the main simulation:
