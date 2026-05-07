@@ -143,6 +143,16 @@ def heuristic(a, b):
     return abs(a[0] - b[0]) + abs(a[1] - b[1]) + abs(a[2] - b[2])
 
 
+def is_safe_cell(world, p, clearance=1):
+    x, y, z = p
+    for dx in range(-clearance, clearance + 1):
+        for dy in range(-clearance, clearance + 1):
+            # z'yi sabit tut, sadece yatay clearance
+            if world.is_occupied((x + dx, y + dy, z)):
+                return False
+    return True
+
+
 def neighbors_6(p):
     x, y, z = p
 
@@ -183,9 +193,9 @@ def astar(world, start, goal):
             if not world.inside(*nb):
                 continue
 
-            if world.is_occupied(nb):
+            if not is_safe_cell(world, nb, clearance=1):
                 continue
-
+                
             tentative_g = g_score[current] + 1
 
             if tentative_g < g_score.get(nb, float("inf")):
