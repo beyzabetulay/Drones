@@ -10,7 +10,7 @@ from kalman import Kalman
 
 
 WORLD_SIZE = 100
-NUM_OBSTACLES = 55
+NUM_OBSTACLES = 75
 MAX_RENDER_BLOCKS = 8000
 
 DT = 0.03
@@ -304,6 +304,18 @@ class DroneAgent:
         print(f"Explored nodes: {len(self.explored_nodes)}")
 
         return True
+
+    def validate_path(self):
+        if self.path is None:
+            return
+
+        for i in range(len(self.path) - 1):
+            a = self.path[i]
+            b = self.path[i + 1]
+            mid = tuple(np.round((a + b) / 2).astype(int))
+
+            if self.world.is_occupied(mid):
+                print(f"Path collision between waypoint {i} and {i+1}: mid={mid}")
 
     def target_waypoint(self):
         if not self.has_path():
@@ -656,7 +668,7 @@ class SimulationViewer:
 
         visuals.Line(
             pos=path_points,
-            color=(0.0, 0.9, 1.0, 0.9),
+            color=(0.0, 0.9, 1.0, 0.2),
             width=4,
             parent=self.view.scene,
         )
@@ -797,7 +809,7 @@ def generate_valid_world():
         start = world.random_free_cell()
         goal = world.random_free_cell()
 
-        if heuristic(start, goal) < 100:
+        if heuristic(start, goal) < 150:
             continue
 
         print(f"Attempt {attempt}: start={start}, goal={goal}")
